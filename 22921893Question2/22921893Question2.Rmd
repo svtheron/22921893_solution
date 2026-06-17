@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "INSERT TITLE"
+title: "Baby Names"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -105,12 +105,102 @@ library(tidyverse)
 if(!require("pacman")) install.packages("pacman")
 library(pacman)
 
+p_load(patchwork)
+
 # Loading functions:
 list.files('code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
 
 # Loading data:
+baby_names <- read_rds("data/US_Baby_names/Baby_Names_By_US_State.rds")
+t100billboard <- read_rds("data/US_Baby_names/charts.rds")
+hbo_titles <- read_rds("data/US_Baby_names/HBO_titles.rds")
+hbo_credits <- read_rds("data/US_Baby_names/HBO_credits.rds")
+```
+
+# Baby name persistence \label{Baby name persistence }
+
+First, I get the national names counts, or, the sum of each name across all the states for each year and gender
+
+```{r}
+national_counts <- national_name_counts(baby_names)
+glimpse(national_counts)
+```
+
+Second, I rank all the names by their count (rank 1 being the most popular), within each year-gender pairing. 
+```{r}
+ranked_counts <- rank_names(national_counts)
+glimpse(ranked_counts)
+```
+
+Third, I create a function for the top n ranked names for year-gender pairings
+```{r}
+top25 <- top_n_names(ranked_counts, n = 25)
+```
+
+Fourth, in order to measure persistence, I tracked each each years top 25 names (male and female), and then checked where they ranked 1, 2 and 3 years later.The Spearman rank correlation is used, where a rank close to 1 means the names stayed in the same order, and close to 0 means they changed significantly. 
+```{r}
+# First, I test rank_correlation()
+test_corr <- rank_correlation(top25, ranked_counts, lag = 1)
+
+# Applying rank_correlation across lags 1-3 and combining
+all_correlations <- c(1, 2, 3) |>
+  map_df(~ rank_correlation(top25, ranked_counts, lag = .))
+
+glimpse(all_correlations)
+```
+
+Fifth, I plot the correlation over time.
+```{r}
+persistence_plot <- rank_persistence_plot(all_correlations)
+persistence_plot
+
+save_plot(persistence_plot, "persistence_plot.png")
+```
+
+The plot does indicate that the agencies suspicions may have been correct, as there does appear to be a drop-off in persistence of the top 25 names from around 1990. The following table further confirms the agencies suspicion. At each lag, the mean correlation drops from the pre- to post-1990 period. This is possibly attributable to cultural influences such as social media and streaming causing more frequent waves of popular names. This motivates the subsequent section, which investigates drivers of baby names.
+```{r}
+corr_table <- correlation_period_table(all_correlations)
+corr_table
+```
+
+# Investigating naming spikes \label{Investigating naming spikes }
+
+First, I check the distribution of the data in order to get a threshold which will be use to filter out low-volume names. 500 is chosen as the threshold.
+```{r}
+# Checking distributions
+count_summary <- summary(national_counts$count)
+count_summary
+
+count_quantiles <- quantile(national_counts$count, probs = c(0.5, 0.75, 0.9, 0.95, 0.99))
+count_quantiles
 
 ```
 
-# Introduction \label{Introduction}
+Then, I calculate the naming spikes as year-on-year percentage changes. 
+```{r}
+spikes <- name_spikes(national_counts)
 
+top_spikes <- top_spikes_table(spikes)
+top_spikes
+```
+
+While a number of names are likely candidates for being driven by pop-culture influence, the name Aaliyah has the 2nd largest year-on-year spike, with a percentage change of 28 140 in 1994. As the following search indicates, the pop singer Aaliyah's first entry into the Billboard top 100 chart was also in 1994. 
+
+```{r}
+aaliyah_query <- search_billboard(t100billboard, "Aaliyah") |> 
+    head(20)
+
+aaliyah_query
+```
+
+I create the following graph in order to visualise the spike in popularity with and the rise of Aaliyah on the Billboard charts.
+```{r}
+aaliyah <- name_spike_plot(national_counts, "Aaliyah", "F", c(1975, 2014)) /
+    billboard_weeks_plot(t100billboard, "Aaliyah", c(1975, 2014))
+
+aaliyah
+
+save_plot(aaliyah, "aaliyah.png")
+```
+
+This indicates that pop-culture, fashionable trends, and celebrity culture can influence naming trends over time. 
