@@ -1,0 +1,77 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+
+# Purpose
+
+Purpose of this work folder.
+
+Ideally store a minimum working example data set in data folder.
+
+Add binary files in bin, and closed R functions in code. Human Readable settings files (e.g. csv) should be placed in settings/
+
+```{r, results='hide'}
+## Set-up
+
+# Clearing environment and loading functions:
+rm(list = ls()) 
+gc() 
+library(tidyverse)
+list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
+
+# Setting up folder structure:
+CHOSEN_LOCATION <- "/Users/samtheron/Desktop/Data Sc./22921893_solution"
+# Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question1")
+# Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question2")
+```
+
+
+# Question 1
+
+```{r, results='hide'}
+# Clearing environment:
+gc() 
+library(pacman)
+
+# Loading packages:
+p_load(tidyverse, lubridate)
+
+# Sourcing functions:
+list.files('22921893Question1/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
+
+# Loading data:
+```
+
+# Question 2
+
+```{r, results='hide'}
+# Clearing environment:
+gc() 
+library(pacman)
+
+# Loading packages:
+p_load(tidyverse, lubridate)
+
+# Sourcing functions:
+list.files('22921893Question2/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
+
+# Loading data:
+```
+
+# Question 3
+
+```{r, results='hide'}
+# Clearing environment:
+gc() 
+library(pacman)
+
+# Loading packages:
+p_load(tidyverse, lubridate)
+
+# Sourcing functions:
+list.files('22921893Question3/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
+
+# Loading data:
+```
