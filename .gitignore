@@ -47,3 +47,12 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# more
+.gitignore
+.gitattributes
+data/
+22921893Question1/data/
+22921893Question2/data/
+22921893Question3/data/
+22921893Question4/data/

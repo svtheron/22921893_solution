@@ -25,6 +25,8 @@ list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.
 CHOSEN_LOCATION <- "/Users/samtheron/Desktop/Data Sc./22921893_solution"
 # Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question1")
 # Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question2")
+# Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question3")
+# Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question4")
 ```
 
 
