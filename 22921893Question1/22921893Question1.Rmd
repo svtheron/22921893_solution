@@ -96,7 +96,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5, fig.pos="H", fig.pos = 'H')
 
 # Loading packages:
 if(!require("tidyverse")) install.packages("tidyverse")
@@ -105,6 +105,8 @@ library(tidyverse)
 if(!require("pacman")) install.packages("pacman")
 library(pacman)
 
+p_load(stringi, ggridges, patchwork)
+
 # Loading functions:
 list.files('code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
 
@@ -112,7 +114,7 @@ list.files('code/', full.names = T, recursive = T) %>% as.list() %>% walk(~sourc
 raw_coffee <- read_csv("data/Coffee/Coffee.csv")
 ```
 
-# Loading data and cleaning \label{Loading data and cleaning}
+# Loading and cleaning data
 
 First, I want to inspect the data to check its format and how messy it is
 ```{r}
@@ -138,29 +140,45 @@ Additional issue with the data: the dates are in (Mon-YY) format; the country co
 coffee_clean <- clean_coffee_data(coffee)
 ```
 
-# Cost and rating \label{Cost and ratings }
+# Cost and rating 
 
 First, we will investigate the relationship between cost and rating by the location of the roaster. As rating is a discrete variable, we will use a boxplot.
-```{r}
+```{r, fig.align = 'center', fig.cap = "Cost and rating."}
 box <- plot_box_cost_rating(coffee_clean)
 box
 ```
 
-The plot displays an upward trend, where higher ratings cluster at a higher cost. The mid-range of ratings overlap significantly, with long tails in both directions. As the United States (n = 1332) and Taiwan (n = 549) are the countries which roast the most coffee beans, they are the predominant countries in the data. To visualise the cost and rating for these countries the following functions are run:
+The plot displays an upward trend, where higher ratings cluster at a higher cost. The mid-range of ratings overlap significantly, with long tails in both directions. As the United States (n = 1332) and Taiwan (n = 549) are the countries which roast the most coffee beans, they are the predominant countries in the data. To visualise the cost distribution of these countries the following functions are run:
 
-```{r}
+```{r , fig.align = 'center', fig.cap = "The US and Taiwan."}
 # Density of cost
 cost_density <- plot_country_density(coffee_clean, cost_per_100g, c("United States", "Taiwan")) 
 cost_density
-
-# Density of rating
-rating_density <- plot_country_density(coffee_clean, rating, c("United States", "Taiwan"))
-rating_density
 ```
 
-THEN, FIND COUNTRY WITH THE BEST COST/RATING ratio
+As the goal should ultimately be to find good value coffee, I define a value metric as rating divided by cost per 100g. This tells the buyer how much rating she is getting per dollar spent. The function also filters coffees with implausibly low cost. 
+```{r}
+coffee_clean <- add_value(coffee_clean)
+```
 
-facet wrap cost/rating ratio by roast, loc_country
+After removing the two implausible entries, the value metric now ranges from 0.7 to 81.4, with a mean of 15.4 and a median of 16.0. Coffee costs are skewed right, indicating most coffees are reasonably priced with a few expensive coffees also present in the sample. In contrast, ratings are tightly clustered, ranging between 84 and 98. 
+```{r}
+desc_stats <- numeric_summary(coffee_clean) |> 
+    knitr::kable(caption = "Descriptive statistics")
+
+desc_stats
+```
+
+The following table depicts the Top 10 roasters by median value. Inclusion as a candidate for best value roaster requires at least 5 coffees. Mr. Chao Coffee, El Gran Cafe, and Jackrabbit Java lead with median values around 22-25. These roasters deliver substantially more rating per dollar spent than the sample median of 16.0. 
+```{r}
+candidate_roasters <- best_value_roasters(coffee_clean, min_n = 5)
+
+t10candidates <- candidate_roasters |> 
+  slice_head(n = 10) |> 
+  knitr::kable(digits = 2, caption = "Top 10 roasters by value (median)")
+
+t10candidates
+```
 
 # Indicators of good coffee \label{Indicators of good coffee }
 
@@ -173,59 +191,47 @@ Per the practical instructions, the most important keywords that Stelenbosch stu
 - chocolate
 - toned
 
-Therefore, I first generate a new dataset, which includes a count of these important keywords as well as a total appearance column
+Therefore, I first generate a new dataset, which includes a count of these important keywords individually as well as a total column.
 ```{r}
 coffee_keywords <- count_keywords(coffee_clean, c("mouthfeel", "aroma", "chocolate", "sweet", "finish", "toned", "structure"))
 ```
 
-This new dataset is more complete, as it includes valuable information: the frequency of keywords which Stellenbosch students regard as desirable. Therefore, I felt it was appropriate to look at summary statistics.
+This new dataset is more complete, as it includes valuable information: the frequency of keywords which Stellenbosch students regard as desirable. This is valuable information, as it provides an indicator of what qualities may make a coffee in Stellenbosch a best seller. 
+
+# Which roaster is the 'best'?
+
+To see whether the roasters with the best value also score well on keyword indicators, I add the average keyword count per roaster to the top 10 value rankings. This indicates there a tradeoff when choosing a roaster to supply coffee. The roasters with the highest rating (e.g. Kakalove Cafe) are more expensive, and do not necessarily have a higher frequency of desirable keywords. is  Two roasters stand out in the table as having a particularly high keyword average, Mystic Monk Coffee and Creation Food Co.
+
 ```{r}
-# Mean & median cost, rating and keyword occurence by roast
-roast_stats <- summarise_numeric(coffee_keywords, roast) |> 
-    knitr::kable(digits = 2)
+keyword_avg <- coffee_keywords |> 
+    summarise(total_keywords_mean = mean(total_keywords, na.rm = TRUE), .by = roaster)
 
-# Mean & median cost, rating and keyword occurence by country
-# Filter to Taiwan and the United States
-taiwan_america_stats <- summarise_numeric(coffee_keywords, loc_country) |> 
-    filter(loc_country %in% c("United States", "Taiwan")) |> 
-    knitr::kable(digits = 2)
+candidate_roasters <- candidate_roasters |> 
+    left_join(keyword_avg, by = "roaster")
 
-taiwan_america_stats
+t10complete <- candidate_roasters |> 
+    slice_head(n = 10) |> 
+    knitr::kable(digits = 2, caption = "Top 10 roasters by value, with average keywords")
+
+t10complete
 ```
 
-Correlations between key variables
-```{r}
-heatmap <- plot_cor_heatmap(coffee_keywords, rating, cost_per_100g, mouthfeel, aroma, chocolate, sweet, finish, toned, structure)
+The following plot depicts the trade-off when choosing a roaster to supply coffee. As high-rating-roasters are often more expensive, and do not necessarily have more desirable characteristics (as proxied by the frequency of desirable words in the reviews). The following plot displays the relationship between rating (mean) and cost (mean) for each roasters. A clear positive relationship can be seen between rating and cost. The colour corresponds to the mean frequency of desirable words that these roasters have in their coffee (per the reviews). The three roasters that most often have desirable words in their coffee's descriptions are Mystic Monk Coffee, Creation Food Co., and Corvus Coffee Roasters. Of these three, only two appeared in the top value rankings: Mystic Monk Coffee and Creation Food Co. Therefore, it is contended these are the 'best' roasters, as they provide provide great value while having a high frequency of desirable keywords. 
 
-heatmap
-```
-
-# Which roaster is the 'best'? \label{Which roaster is the 'best'? }
-
-The following table depicts the tradeoff when choosing a roaster to supply coffee. As high-rating-roasters are often more expensive, and do not necessarily have more desirable characteristics (as proxied by the frequency of desirable words in the reviews). 
-
-```{r}
+```{r, fig.align = 'center', fig.cap = "Roaster Scatterplot."}
 roaster_counts <- coffee_clean |> 
     count(roaster) |> 
     arrange(desc(n))
 
-roaster_stats <-summarise_numeric(coffee_keywords, roaster) |> 
+roaster_stats <- summarise_numeric(coffee_keywords, roaster) |> 
     left_join(roaster_counts, by = "roaster") |> 
     filter(n >= 5) |> 
     arrange(desc(rating_mean))
 
-roaster_stats_table <- roaster_stats |> 
-    slice_head(n = 10) |> 
-    knitr::kable(digits = 2)
-
-roaster_stats_table
-```
-
-The following plot displays the relationship between rating (mean) and cost (mean) for each roasters. A clear positive relationship can be seen between rating and cost. The colour corresponds to the mean frequency of desirable words that these roasters have in their coffee (per the reviews). The three roasters that most often have desirable words in their coffee's descriptions are Mystic Monk Coffee, Creation Food Co., and Corvus Coffee Roasters. Of these, Corvus Coffee Roasters have the best balance. A relatively low cost, a high rating, and a high frequency of desirable characteristics. 
-
-```{r}
 roaster_scatter <- plot_roaster_scatter(roaster_stats)
+
 roaster_scatter
 ```
+
 
 

@@ -7,5 +7,8 @@ plot_country_density <- function(data, variable, countries) {
         ggplot(aes(x = {{ variable }}, fill = loc_country)) +
         scale_x_log10(labels = scales::comma) +
         geom_density(alpha = 0.4) +
-        theme_minimal()
+        theme_minimal() +
+        labs(
+            title = "Distribution"
+        )
 }
