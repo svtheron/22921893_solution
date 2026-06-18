@@ -1,12 +1,12 @@
 # Purpose
 
 This repository contains the solutions for the Data Science Practical
-Project. It involves four key questions: - Q1: An evaluation of global
+Project. It involves four key questions: \* Q1: An evaluation of global
 coffee roasters to identify the best value-for-money options based on
-customer ratings, cost, and descriptive keywords. - Q2: An analysis of
-historical US baby naming trends to measure name persistence over time -
-Q3: An assessment of loan default rates and credit rating accuracy in
-the United States. - Q4: A report on Netflix movie characteristics,
+customer ratings, cost, and descriptive keywords. \* Q2: An analysis of
+historical US baby naming trends to measure name persistence over time
+\* Q3: An assessment of loan default rates and credit rating accuracy in
+the United States. \* Q4: A report on Netflix movie characteristics,
 evaluating genres, runtimes, audience ratings, and descriptive text
 themes.
 
