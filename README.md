@@ -1,11 +1,16 @@
 # Purpose
 
-Purpose of this work folder.
+This repository contains the solutions for the Data Science Practical
+Project. It involves four key questions: - Q1: An evaluation of global
+coffee roasters to identify the best value-for-money options based on
+customer ratings, cost, and descriptive keywords. - Q2: An analysis of
+historical US baby naming trends to measure name persistence over time -
+Q3: An assessment of loan default rates and credit rating accuracy in
+the United States. - Q4: A report on Netflix movie characteristics,
+evaluating genres, runtimes, audience ratings, and descriptive text
+themes.
 
-Ideally store a minimum working example data set in data folder.
-
-Add binary files in bin, and closed R functions in code. Human Readable
-settings files (e.g. csv) should be placed in settings/
+# General set-up
 
 ``` r
 ## Set-up
@@ -43,15 +48,6 @@ list.files('22921893Question1/code/', full.names = T, recursive = T) %>% as.list
 # Loading data:
 raw_coffee <- read_csv("22921893Question1/data/Coffee/Coffee.csv")
 ```
-
-    ## Rows: 2095 Columns: 12
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (10): name, roaster, roast, loc_country, origin_1, origin_2, review_date...
-    ## dbl  (2): Cost_Per_100g, Rating
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ## Loading and cleaning data
 
@@ -741,15 +737,6 @@ titles <- read_rds("22921893Question4/data/netflix/titles.rds")
 credits <- read_rds("22921893Question4/data/netflix/credits.rds")
 movies <- read_csv("22921893Question4/data/netflix/netflix_movies.csv")
 ```
-
-    ## Rows: 6131 Columns: 12
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (11): show_id, type, title, director, cast, country, date_added, rating,...
-    ## dbl  (1): release_year
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ## Loading data and cleaning
 

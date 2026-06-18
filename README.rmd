@@ -6,11 +6,13 @@ output:
 
 # Purpose
 
-Purpose of this work folder.
+This repository contains the solutions for the Data Science Practical Project. It involves four key questions:
+- Q1: An evaluation of global coffee roasters to identify the best value-for-money options based on customer ratings, cost, and descriptive keywords.
+- Q2: An analysis of historical US baby naming trends to measure name persistence over time
+- Q3: An assessment of loan default rates and credit rating accuracy in the United States.
+- Q4: A report on Netflix movie characteristics, evaluating genres, runtimes, audience ratings, and descriptive text themes. 
 
-Ideally store a minimum working example data set in data folder.
-
-Add binary files in bin, and closed R functions in code. Human Readable settings files (e.g. csv) should be placed in settings/
+# General set-up 
 
 ```{r, results='hide'}
 ## Set-up
@@ -34,7 +36,7 @@ CHOSEN_LOCATION <- "/Users/samtheron/Desktop/Data Sc./22921893_solution"
 
 ## Set-up code
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 # Clearing environment:
 gc() 
 library(pacman)
@@ -406,7 +408,7 @@ save_plot(sample_states,"Default rate by grade across Arkansas, Oregon, and Texa
 
 ## Set-up code
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 # Clearing environment:
 gc() 
 library(pacman)
