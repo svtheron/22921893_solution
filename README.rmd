@@ -31,7 +31,7 @@ CHOSEN_LOCATION <- "/Users/samtheron/Desktop/Data Sc./22921893_solution"
 
 # Purpose
 
-# Question 1
+# Question 1: Finding The Best Coffee Roaster
 
 ```{r, results='hide'}
 # Clearing environment:
@@ -174,7 +174,7 @@ roaster_scatter
 save_plot(roaster_scatter, "Roaster Scatterplot.png" )
 ```
 
-# Question 2
+# Question 2: Baby Naming Trends 
 
 ```{r, results='hide'}
 # Clearing environment:
@@ -182,15 +182,98 @@ gc()
 library(pacman)
 
 # Loading packages:
-p_load(tidyverse, lubridate)
+p_load(tidyverse, lubridate, patchwork)
 
 # Sourcing functions:
 list.files('22921893Question2/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
 
 # Loading data:
+baby_names <- read_rds("22921893Question2/data/US_Baby_names/Baby_Names_By_US_State.rds")
+t100billboard <- read_rds("22921893Question2/data/US_Baby_names/charts.rds")
+hbo_titles <- read_rds("22921893Question2/data/US_Baby_names/HBO_titles.rds")
+hbo_credits <- read_rds("22921893Question2/data/US_Baby_names/HBO_credits.rds")
 ```
 
-# Question 3
+## Baby name persistence 
+
+First, I get the national names counts, or, the sum of each name across all the states for each year and gender
+
+```{r}
+national_counts <- national_name_counts(baby_names)
+```
+
+Second, I rank all the names by their count (rank 1 being the most popular), within each year-gender pairing. 
+```{r}
+ranked_counts <- rank_names(national_counts)
+```
+
+Third, I create a function for the top n ranked names for year-gender pairings
+```{r}
+top25 <- top_n_names(ranked_counts, n = 25)
+```
+
+Fourth, in order to measure persistence, I tracked each each years top 25 names (male and female), and then checked where they ranked 1, 2 and 3 years later.The Spearman rank correlation is used, where a rank close to 1 means the names stayed in the same order, and close to 0 means they changed significantly. 
+```{r}
+# First, I test rank_correlation()
+test_corr <- rank_correlation(top25, ranked_counts, lag = 1)
+
+# Applying rank_correlation across lags 1-3 and combining
+all_correlations <- c(1, 2, 3) |>
+  map_df(~ rank_correlation(top25, ranked_counts, lag = .))
+```
+
+Fifth, I plot the correlation over time.
+```{r, fig.align = 'center', fig.cap = "The Persistence of Baby Names."}
+persistence_plot <- rank_persistence_plot(all_correlations)
+
+persistence_plot
+
+save_plot(persistence_plot, "persistence_plot.png")
+```
+
+The plot does indicate that the agencies suspicions may have been correct, as there does appear to be a drop-off in persistence of the top 25 names from around 1990. The following table further confirms the agencies suspicion. At each lag, the mean correlation drops from the pre- to post-1990 period. This is possibly attributable to cultural influences such as social media and streaming causing more frequent waves of popular names. This motivates the subsequent section, which investigates drivers of baby names.
+```{r}
+corr_table <- correlation_period_table(all_correlations)
+corr_table
+```
+
+## Investigating naming spikes 
+
+First, I check the distribution of the data in order to get a threshold which will be use to filter out low-volume names. 500 is chosen as the threshold.
+```{r}
+# Checking distributions
+count_summary <- summary(national_counts$count)
+
+count_quantiles <- quantile(national_counts$count, probs = c(0.5, 0.75, 0.9, 0.95, 0.99))
+```
+
+Then, I calculate the naming spikes as year-on-year percentage changes. 
+```{r}
+spikes <- name_spikes(national_counts)
+
+top_spikes <- top_spikes_table(spikes)
+top_spikes
+```
+
+While a number of names are likely candidates for being driven by pop-culture influence, the name Aaliyah has the 2nd largest year-on-year spike, with a percentage change of 28 140 in 1994. As the following search indicates, the pop singer Aaliyah's first entry into the Billboard top 100 chart was also in 1994. 
+```{r}
+aaliyah_query <- search_billboard(t100billboard, "Aaliyah") |> 
+    head(20)
+```
+
+I create the following graph in order to visualise the spike in popularity with and the rise of Aaliyah on the Billboard charts.
+```{r, fig.align = 'center', fig.cap = "The Name Aaliyah, Over Time."}
+aaliyah <- name_spike_plot(national_counts, "Aaliyah", "F", c(1975, 2014)) /
+    billboard_weeks_plot(t100billboard, "Aaliyah", c(1975, 2014))
+
+aaliyah
+
+save_plot(aaliyah, "aaliyah.png")
+```
+
+This indicates that pop-culture, fashionable trends, and celebrity culture can influence naming trends over time. 
+
+# Question 3: Defaults and Credit Ratings in the United States
 
 ```{r, results='hide'}
 # Clearing environment:
@@ -198,10 +281,246 @@ gc()
 library(pacman)
 
 # Loading packages:
-p_load(tidyverse, lubridate)
+p_load(tidyverse, lubridate, readxl, ggridges, usmap)
 
 # Sourcing functions:
 list.files('22921893Question3/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
 
 # Loading data:
+loan_credit <- read_rds("22921893Question3/data/Loan_Cred/loan_data.rds")
+dictionary <- read_excel("22921893Question3/data/Loan_Cred/Dictionary.xlsx")
 ```
+
+## Loading data and cleaning 
+
+I first inspect the raw data to assess how and what to clean. The dataset has 145 columns, with many containing a large amount of missing values. The columns relevant to the current analysis, such as loan status, grade, and home ownership are all relatively complete. 
+
+```{r, results='hide'}
+overview <- data_overview(loan_credit) 
+```
+
+To clean the data, I select only the relevant columns. Furthermore, I create a binary outcome variable for whether the loan status is fully paid off or not. The summary statistics of the cleaned data indicate outliers are present in the data. For instance, annual income has a maximum of 9 500 000. Similarly, debt-to-income also has a hanful of extreme outliers, with a handful of pre-cleaning observations with a dti equal to 999. The cleaning drops the most extreme dti observations. 
+```{r}
+loan_clean <- clean_loan_data(loan_credit)
+
+sum_stats <- numeric_summary(loan_clean) |> 
+    knitr::kable(caption = "Summary statistics")
+
+sum_stats
+```
+
+## Default rates on short-term loans
+
+First, I filter to short-term loans, and then create a function which calculates the default rate for any group. Among short term loans (36 months), the default rate falls as home ownership improves. Renters default at 23.1%, compared to 19.9% for owners and 15.2% for those still paying a mortgage. This provides an indication that owning vs renting matters. Although, the fact that mortgage holders default less than owners is a less intuitive result. 
+```{r}
+loan_short <- loan_clean |> 
+    filter(term == "36 months")
+
+# Home ownership and default rates for short-term loans
+short_default_home <- default_rate_by_group(loan_short, home_ownership) |>
+  knitr::kable(caption = "Default rate by home ownership")
+
+short_default_home
+
+# Employment length and default rates for short-term loans
+short_default_emp <- default_rate_by_group(loan_short, emp_length) |>
+  knitr::kable(caption = "Default rate by employment length")
+
+short_default_emp
+```
+
+```{r, fig.align = 'center', fig.cap = "Home ownership and default rates."}
+# Plotting home ownership and default rates
+default_rate_home_bar <- default_rate_bar(loan_short, home_ownership)
+
+default_rate_home_bar
+
+save_plot(default_rate_home_bar, "Home ownership and default rates.png")
+```
+
+Employment length does not appear to be a meaningful indicator of default on short-term loans. Employees with 10+ years have a slightly lower default rate, although the default rates between all employment length groups is very similar. The one notable exception is the group with a missing employment length, which defaults at 27.9%.  This is possibly attributable to unemployed or self-employed individuals, who do not report their employment length. 
+```{r}
+missing_income <- loan_short |>
+  mutate(emp_missing = is.na(emp_length)) |>
+  summarise(
+    n             = n(),
+    mean_income   = mean(annual_inc, na.rm = TRUE),
+    median_income = median(annual_inc, na.rm = TRUE),
+    .by = emp_missing
+  ) |> 
+    knitr::kable(caption = "Income of missing employment oberservations")
+
+missing_income
+```
+
+## State differences in short-term loan defaults
+
+Now, I analyse differences in the defaults on short-term loans by state. There is significant variability in the average default rate across states. States such as Arkansas, Oklahoma, Louisiana, and Alabama have the highest default rates with more than 20%. The map plot confirms that there are interstate differences in short-term loan defaults. Specifically, Southern States have a higher propensity to default. The states with the lowest propensity to default are more Northern, coastal states, such as Oregon. 
+
+```{r, , fig.align = 'center', fig.cap = "Default rate for American states."}
+state_bar <- plot_state_bar(loan_short)
+
+state_bar
+
+save_plot(state_bar, "Default rate for American states.png")
+```
+
+```{r, fig.align = 'center', fig.cap = "Default rate in the United States"}
+map_plot <- plot_state_map(loan_short)
+
+map_plot
+
+save_plot(map_plot, "Default rate in the United States.png")
+```
+
+## What does grade predict?
+
+The following table displays the relationship between average default rates and credit grades.  As expected, the default rate rises steadily from Grade A to Grade G. This indicates the credit grading system tracks default risk well. The previous section highlighted two states of interest, Arkansas and Oregon, representing the top and bottom of the load default rate spectrum, respectively. Therefore, I plot the average default rate for each credit rate for both these states. I add Texas as it fell in the midrange of the state loan default rate. 
+
+```{r}
+# Default rate by grade table
+default_rate_by_grade <- default_rate_by_group(loan_short, grade) |>
+    arrange(desc(default_rate)) |> 
+    knitr::kable(caption = "Default rate by credit grade")
+
+default_rate_by_grade
+```
+
+As expected, Arkansas generally has a higher default rate at each credit rating level, followed by Texas and Oregon. This indicates that the grade-default relationship is consistent in this three state sub-sample. The only exception is Grade G, which makes up a small amount of the observations, indicating that the prominence of Grade G in the plot may be unreliable. 
+
+```{r, fig.align = 'center', fig.cap = "Default rate by grade across Arkansas, Oregon, and Texas."}
+# Default rate by (selected) states barplot
+sample_states <- default_rate_by_grade_state(loan_short, c("AR", "TX", "OR"))
+
+sample_states
+
+save_plot(sample_states,"Default rate by grade across Arkansas, Oregon, and Texas.png")
+```
+
+# Question 4: Netflix Report
+
+```{r, results='hide'}
+# Clearing environment:
+gc() 
+library(pacman)
+
+# Loading packages:
+p_load(tidyverse, lubridate, ggridges, tidytext)
+
+# Sourcing functions:
+list.files('22921893Question4/code/', full.names = T, recursive = T) %>% as.list() %>% walk(~source(.))
+
+# Loading data:
+titles <- read_rds("22921893Question4/data/netflix/titles.rds")
+credits <- read_rds("22921893Question4/data/netflix/credits.rds")
+movies <- read_csv("22921893Question4/data/netflix/netflix_movies.csv")
+```
+
+## Loading data and cleaning 
+
+First, I filtered and cleaned the title data. I filtered the data to only include movies. I cleaned the data to remove column formatting issues. As some of the columns had two values per observation (e.g. multiple genres), I pivoted longer to allow for genre and country based analysis. 
+```{r}
+# Filtering to only movies
+movies_titles <- titles |> 
+  filter(type == "MOVIE")
+
+# Cleaning the formatting of the production_countries and genres columns
+movies_long <- movies_titles |> 
+  unnest_list_string(production_countries) |> 
+  unnest_list_string(genres)
+```
+
+## Types of movies by country 
+
+I first identify the identify the top countries. The five countries which are the most prolific producers are the United States, India, France, and Canada. 
+```{r, results='hide'}
+# Top countries
+top_countries <- movies_long |> 
+  distinct(id, production_countries) |> 
+  count(production_countries, sort = TRUE) |> 
+  slice_head(n = 5)
+
+top_countries
+
+# Top genres by country
+top_genres_by_country <- movies_long |> 
+  filter(production_countries %in% top_countries$production_countries) |> 
+  count(production_countries, genres, sort = TRUE) |> 
+  slice_max(n, n = 5, by = production_countries)
+```
+
+```{r}
+# Tabulating
+top_table <- top_genres_by_country |> 
+  knitr::kable(caption = "Top 5 Genres by Country")
+top_table
+```
+
+The results from analysis the top genres by countries illustrate heterogeneity in preferences. Comedy and drama dominate in the United States, India, and Canada. Documentation films are strong in the United States, and the UK. 
+```{r, warning = FALSE, fig.align = 'center', fig.cap = "Top Generes by Country.\\label{fig:country-genre}", fig.ext = 'png', fig.height = 5, fig.width = 7}
+country_genre <- genre_by_country_plot(top_genres_by_country)
+
+country_genre
+
+save_plot(country_genre, "country_genre.png")
+```
+
+## Distribution of ratings by genre 
+
+Here, I visualise the distribution of ratings by genre. History, documentation, war and sport films are more commonly well-received. Horror, family, sci-fi, and action lie at the bottom range of the rating distribution. However, most genres cluster around a mean score of between 6 and 7, and are fairly widely spread. This indicates genre alone is a weak predictor of ratings.
+```{r  ,warning = FALSE, fig.align = 'center', fig.cap = "IMDb Score Distribution by Genre.\\label{fig:genreridge}", fig.ext = 'png', fig.height = 5, fig.width = 7}
+genre_ridge <- genre_score_ridge_plot(movies_long)
+
+genre_ridge
+
+save_plot(genre_ridge, "genre_ridge.png")
+```
+
+## Distribution of runtime by genre 
+
+Here, I visualise the distribution of runtime by genre. Similar to the ratings distribution, most genres are clustered over a similar mean (just below 100 minutes) with fairly wide spreads.
+```{r , warning = FALSE, fig.align = 'center', fig.cap = "Movie Runtime Distribution by Genre.\\label{fig:runtimeviolin}", fig.ext = 'png', fig.height = 5, fig.width = 7}
+runtime_violin <- genre_runtime_violin_plot(movies_long)
+
+runtime_violin
+
+save_plot(runtime_violin, "runtime_violin.png")
+```
+
+## Text analysis 
+
+First, I clean and filter the dataset. To avoid double counting words from movies with multiple genres, the data is reduced to one row per movie per country before tokenising descriptions.
+```{r}
+movies_by_country <- movies_titles |>
+    unnest_list_string(production_countries)
+```
+
+Second, I look for the top words by country. Across most countries, "life", "family", and "world" are common in movie descriptions. This indicates that a strong drama/relationship focus is appealing. The UK stands out with location-specific words like "london" and "british". Similarly, France's results lean toward "french" and "paris". This suggesting more nationally-rooted storytelling is favoured in these countries. In contrast, Canada and the United states have more broad themes, such as "family", "life" and "home". 
+```{r, results='hide'}
+top_words <- top_words_by_country(
+    movies_by_country,
+    countries = top_countries$production_countries,
+    top_n = 10
+)
+
+top_words
+```
+
+```{r, warning = FALSE, fig.align = 'center', fig.cap = "Top 10 Description Words by Country.\\label{fig:wordplot}", fig.ext = 'png', fig.height = 5, fig.width = 7}
+word_plot <- top_words_plot(top_words)
+
+word_plot
+
+save_plot(word_plot, "word_plot.png")
+```
+
+South Africa's most frequent words have a slightly different tilt than the world's top producers. Notably, frequent words include "south" and "africa", indicating the important of domestic storytelling in the country. "Apartheid" is also amongst the most frequent, illustrating the importance of the countries history. Similar to the patterns observed in the rest of the world, words such as "love", "life" and "family" are also common in South Africa. 
+
+```{r, warning = FALSE, fig.align = 'center', fig.cap = "Top Description Words South Africa.\\label{fig:rsalollipop}", fig.ext = 'png', fig.height = 5, fig.width = 7}
+rsa_lollipop <- top_words_by_country(movies_by_country, countries = "ZA", top_n = 10) |> 
+  top_words_lollipop(country = "ZA", top_n = 10)
+
+rsa_lollipop
+```
+
+

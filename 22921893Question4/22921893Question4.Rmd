@@ -118,7 +118,7 @@ movies <- read_csv("data/netflix/netflix_movies.csv")
 
 # Loading data and cleaning 
 
-First, I filtered and cleaned the title data. I filtered the data to only inclue movies. I cleaned the data to remove column formatting issues. As some of the columns had two values per observation (e.g. multiple genres), I pivoted longer to allow for genre and country based analysis. 
+First, I filtered and cleaned the title data. I filtered the data to only include movies. I cleaned the data to remove column formatting issues. As some of the columns had two values per observation (e.g. multiple genres), I pivoted longer to allow for genre and country based analysis. 
 ```{r}
 # Filtering to only movies
 movies_titles <- titles |> 
