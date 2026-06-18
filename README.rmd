@@ -55,7 +55,7 @@ raw_coffee <- read_csv("22921893Question1/data/Coffee/Coffee.csv")
 
 ## Loading and cleaning data
 
-First, I want to inspect the data to check its format and how messy it is
+First, I want to inspect the data to check its format and how messy it is.
 ```{r}
 raw_count <- raw_coffee |> 
     count(roast)
