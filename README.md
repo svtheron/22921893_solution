@@ -16,6 +16,9 @@ Project. It involves four key questions:
 - Q4: A report on Netflix movie characteristics, evaluating genres,
   runtimes, audience ratings, and descriptive text themes.
 
+Each question is knitted to a pdf report using Texevier. Additionally,
+Question 1 includes a short powerpoint presentation.
+
 # General set-up
 
 ``` r
