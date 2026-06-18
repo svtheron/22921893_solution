@@ -11,6 +11,7 @@ correlation_period_table <- function(data, cutoff_year = 1990) {
         arrange(lag, period) |>
         knitr::kable(
             col.names = c("Period", "Lag (years)", "Mean Correlation"),
+            caption = "Mean Correlation around 1990",
             digits = 3
         )
 }

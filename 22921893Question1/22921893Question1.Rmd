@@ -145,7 +145,10 @@ coffee_clean <- clean_coffee_data(coffee)
 First, we will investigate the relationship between cost and rating by the location of the roaster. As rating is a discrete variable, we will use a boxplot.
 ```{r, fig.align = 'center', fig.cap = "Cost and rating."}
 box <- plot_box_cost_rating(coffee_clean)
+
 box
+
+save_plot(box, "Cost and rating.png")
 ```
 
 The plot displays an upward trend, where higher ratings cluster at a higher cost. The mid-range of ratings overlap significantly, with long tails in both directions. As the United States (n = 1332) and Taiwan (n = 549) are the countries which roast the most coffee beans, they are the predominant countries in the data. To visualise the cost distribution of these countries the following functions are run:
@@ -154,6 +157,8 @@ The plot displays an upward trend, where higher ratings cluster at a higher cost
 # Density of cost
 cost_density <- plot_country_density(coffee_clean, cost_per_100g, c("United States", "Taiwan")) 
 cost_density
+
+save_plot(cost_density, "The US and Taiwan.jpg")
 ```
 
 As the goal should ultimately be to find good value coffee, I define a value metric as rating divided by cost per 100g. This tells the buyer how much rating she is getting per dollar spent. The function also filters coffees with implausibly low cost. 
@@ -231,6 +236,8 @@ roaster_stats <- summarise_numeric(coffee_keywords, roaster) |>
 roaster_scatter <- plot_roaster_scatter(roaster_stats)
 
 roaster_scatter
+
+save_plot(roaster_scatter, "Roaster Scatterplot.png" )
 ```
 
 

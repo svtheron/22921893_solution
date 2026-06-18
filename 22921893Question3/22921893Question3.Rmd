@@ -121,7 +121,6 @@ I first inspect the raw data to assess how and what to clean. The dataset has 14
 
 ```{r, results='hide'}
 overview <- data_overview(loan_credit) 
-
 ```
 
 To clean the data, I select only the relevant columns. Furthermore, I create a binary outcome variable for whether the loan status is fully paid off or not. The summary statistics of the cleaned data indicate outliers are present in the data. For instance, annual income has a maximum of 9 500 000. Similarly, debt-to-income also has a hanful of extreme outliers, with a handful of pre-cleaning observations with a dti equal to 999. The cleaning drops the most extreme dti observations. 
@@ -159,6 +158,8 @@ short_default_emp
 default_rate_home_bar <- default_rate_bar(loan_short, home_ownership)
 
 default_rate_home_bar
+
+save_plot(default_rate_home_bar, "Home ownership and default rates.png")
 ```
 
 Employment length does not appear to be a meaningful indicator of default on short-term loans. Employees with 10+ years have a slightly lower default rate, although the default rates between all employment length groups is very similar. The one notable exception is the group with a missing employment length, which defaults at 27.9%.  This is possibly attributable to unemployed or self-employed individuals, who do not report their employment length. 
@@ -184,12 +185,16 @@ Now, I analyse differences in the defaults on short-term loans by state. There i
 state_bar <- plot_state_bar(loan_short)
 
 state_bar
+
+save_plot(state_bar, "Default rate for American states.png")
 ```
 
 ```{r, fig.align = 'center', fig.cap = "Default rate in the United States"}
 map_plot <- plot_state_map(loan_short)
 
 map_plot
+
+save_plot(map_plot, "Default rate in the United States.png")
 ```
 
 # What does grade predict?
@@ -212,5 +217,7 @@ As expected, Arkansas generally has a higher default rate at each credit rating 
 sample_states <- default_rate_by_grade_state(loan_short, c("AR", "TX", "OR"))
 
 sample_states
+
+save_plot(sample_states,"Default rate by grade across Arkansas, Oregon, and Texas.png")
 ```
 
