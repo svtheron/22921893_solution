@@ -13,21 +13,8 @@ settings files (e.g. csv) should be placed in settings/
 # Clearing environment and loading functions:
 rm(list = ls()) 
 gc() 
-library(tidyverse)
-```
-
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.2.1     ✔ readr     2.1.6
-    ## ✔ forcats   1.0.0     ✔ stringr   1.6.0
-    ## ✔ ggplot2   4.0.1     ✔ tibble    3.3.1
-    ## ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-    ## ✔ purrr     1.2.2     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-
-``` r
+library(pacman)
+p_load(tidyverse)
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 
 # Setting up folder structure:
@@ -38,9 +25,9 @@ CHOSEN_LOCATION <- "/Users/samtheron/Desktop/Data Sc./22921893_solution"
 # Texevier::create_template(directory = glue::glue("{CHOSEN_LOCATION}/"), template_name = "22921893Question4")
 ```
 
-# Purpose
-
 # Question 1: Finding The Best Coffee Roaster
+
+## Set-up code
 
 ``` r
 # Clearing environment:
@@ -212,7 +199,7 @@ t10candidates
 
 Top 10 roasters by value (median)
 
-## Indicators of good coffee 
+## Indicators of good coffee
 
 Per the practical instructions, the most important keywords that
 Stelenbosch students have used as indicators of good coffee are: -
@@ -310,6 +297,8 @@ save_plot(roaster_scatter, "Roaster Scatterplot.png" )
 ```
 
 # Question 2: Baby Naming Trends
+
+## Set-up code
 
 ``` r
 # Clearing environment:
@@ -480,6 +469,8 @@ This indicates that pop-culture, fashionable trends, and celebrity
 culture can influence naming trends over time.
 
 # Question 3: Defaults and Credit Ratings in the United States
+
+## Set-up code
 
 ``` r
 # Clearing environment:
@@ -731,6 +722,8 @@ save_plot(sample_states,"Default rate by grade across Arkansas, Oregon, and Texa
 ```
 
 # Question 4: Netflix Report
+
+## Set-up code
 
 ``` r
 # Clearing environment:
