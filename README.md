@@ -56,7 +56,7 @@ raw_coffee <- read_csv("22921893Question1/data/Coffee/Coffee.csv")
 ## Loading and cleaning data
 
 First, I want to inspect the data to check its format and how messy it
-is
+is.
 
 ``` r
 raw_count <- raw_coffee |> 
@@ -114,24 +114,24 @@ tails in both directions. While this plot is useful for a general idea
 of the distribution, it is alone of little significance to a coffee shop
 owner. Therefore, I proceed to more insightful analysis.
 
-As the United States (n = 1332) and Taiwan (n = 549) are the countries
-which roast the most coffee beans, they are the predominant countries in
-the data. To visualise the cost distribution of these countries the
-following functions are run:
+As the United States (n = 1332), Taiwan (n = 549) and Canada are the
+countries which roast the most coffee beans, they are the predominant
+countries in the data. To visualise the cost distribution of these
+countries the following functions are run:
 
 ``` r
 # Density of cost
-cost_density <- plot_country_density(coffee_clean, cost_per_100g, c("United States", "Taiwan")) 
+cost_density <- plot_country_density(coffee_clean, cost_per_100g, c("United States", "Taiwan", "Canada")) 
 cost_density
 ```
 
-<img src="README_files/figure-markdown_github/unnamed-chunk-7-1.png" alt="The US and Taiwan."  />
+<img src="README_files/figure-markdown_github/unnamed-chunk-7-1.png" alt="The US, Taiwan and Canada."  />
 <p class="caption">
-The US and Taiwan.
+The US, Taiwan and Canada.
 </p>
 
 ``` r
-save_plot(cost_density, "The US and Taiwan.jpg")
+save_plot(cost_density, "The US, Taiwan, and Canada.jpg")
 ```
 
 As the goal should ultimately be to find good value coffee, I define a
@@ -198,10 +198,10 @@ t10candidates
 
 Top 10 roasters by value (median)
 
-## Indicators of good coffee
+## Indicators of desirable coffee
 
 Per the practical instructions, the most important keywords that
-Stelenbosch students have used as indicators of good coffee are: -
+Stellenbosch students have used as indicators of good coffee are: -
 sweet - finish - mouthfeel - structure - aroma - chocolate - toned
 
 Therefore, I first generate a new dataset, which includes a count of
