@@ -19,8 +19,6 @@ Project. It involves four key questions:
 # General set-up
 
 ``` r
-## Set-up
-
 # Clearing environment and loading functions:
 rm(list = ls()) 
 gc() 
@@ -80,18 +78,10 @@ load_data function is used:
 coffee <- load_data("22921893Question1/data/Coffee/Coffee.csv")
 ```
 
-    ## Rows: 2095 Columns: 12
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (10): name, roaster, roast, loc_country, origin_1, origin_2, review_date...
-    ## dbl  (2): Cost_Per_100g, Rating
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-Additional issue with the data: the dates are in (Mon-YY) format; the
-country column has a typo where it reads “United States and Floyd”; and
-there are missing values in the roast column. Therefore:
+Further additional issue with the data is identified: the dates are in
+(Mon-YY) format; the country column has a typo where it reads “United
+States and Floyd”;there are missing values in the roast column; and the
+apostrophe’s have formatting issues. Therefore:
 
 ``` r
 coffee_clean <- clean_coffee_data(coffee)
@@ -99,9 +89,9 @@ coffee_clean <- clean_coffee_data(coffee)
 
 ## Cost and rating
 
-First, we will investigate the relationship between cost and rating by
-the location of the roaster. As rating is a discrete variable, we will
-use a boxplot.
+Now that the data has been cleaned, I will investigate the relationship
+between cost and rating. As rating is a discrete variable, we will use a
+boxplot.
 
 ``` r
 box <- plot_box_cost_rating(coffee_clean)
@@ -120,10 +110,14 @@ save_plot(box, "Cost and rating.png")
 
 The plot displays an upward trend, where higher ratings cluster at a
 higher cost. The mid-range of ratings overlap significantly, with long
-tails in both directions. As the United States (n = 1332) and Taiwan (n
-= 549) are the countries which roast the most coffee beans, they are the
-predominant countries in the data. To visualise the cost distribution of
-these countries the following functions are run:
+tails in both directions. While this plot is useful for a general idea
+of the distribution, it is alone of little significance to a coffee shop
+owner. Therefore, I proceed to more insightful analysis.
+
+As the United States (n = 1332) and Taiwan (n = 549) are the countries
+which roast the most coffee beans, they are the predominant countries in
+the data. To visualise the cost distribution of these countries the
+following functions are run:
 
 ``` r
 # Density of cost
@@ -174,7 +168,10 @@ The following table depicts the Top 10 roasters by median value.
 Inclusion as a candidate for best value roaster requires at least 5
 coffees. Mr. Chao Coffee, El Gran Cafe, and Jackrabbit Java lead with
 median values around 22-25. These roasters deliver substantially more
-rating per dollar spent than the sample median of 16.0.
+rating per dollar spent than the sample median of 16.0. Therefore, they
+provide a valuable source to buy coffee beans from. However, as coffee
+tastes vary, we need to quantify the coffee by desirability, which the
+next section does.
 
 ``` r
 candidate_roasters <- best_value_roasters(coffee_clean, min_n = 5)
@@ -226,9 +223,10 @@ keyword indicators, I add the average keyword count per roaster to the
 top 10 value rankings. This indicates there a tradeoff when choosing a
 roaster to supply coffee. The roasters with the highest rating
 (e.g. Kakalove Cafe) are more expensive, and do not necessarily have a
-higher frequency of desirable keywords. is Two roasters stand out in the
+higher frequency of desirable keywords. Two roasters stand out in the
 table as having a particularly high keyword average, Mystic Monk Coffee
-and Creation Food Co.
+and Creation Food Co. Therefore, sourcing coffee from these roasters may
+be optimal for a Stellenbosch coffee entrepreneur.
 
 ``` r
 keyword_avg <- coffee_keywords |> 
@@ -259,20 +257,25 @@ t10complete
 
 Top 10 roasters by value, with average keywords
 
-The following plot depicts the trade-off when choosing a roaster to
-supply coffee. As high-rating-roasters are often more expensive, and do
-not necessarily have more desirable characteristics (as proxied by the
-frequency of desirable words in the reviews). The following plot
-displays the relationship between rating (mean) and cost (mean) for each
-roasters. A clear positive relationship can be seen between rating and
-cost. The colour corresponds to the mean frequency of desirable words
-that these roasters have in their coffee (per the reviews). The three
-roasters that most often have desirable words in their coffee’s
-descriptions are Mystic Monk Coffee, Creation Food Co., and Corvus
-Coffee Roasters. Of these three, only two appeared in the top value
-rankings: Mystic Monk Coffee and Creation Food Co. Therefore, it is
-contended these are the ‘best’ roasters, as they provide provide great
-value while having a high frequency of desirable keywords.
+The evidence suggests there is a trade-off when choosing a roaster to
+supply coffee. High-rating-roasters are often more expensive, and do not
+necessarily have more desirable characteristics (as proxied by the
+frequency of desirable words in the reviews).
+
+The following plot displays the relationship between rating (mean) and
+cost (mean) for each roasters. A clear positive relationship can be seen
+between rating and cost. The colour corresponds to the mean frequency of
+desirable words that these roasters have in their coffee (per the
+reviews).
+
+The three roasters that most often have desirable words in their
+coffee’s descriptions are Mystic Monk Coffee, Creation Food Co., and
+Corvus Coffee Roasters. Of these three, only two appeared in the top
+value rankings: Mystic Monk Coffee and Creation Food Co. Therefore, it
+is contended these are the ‘best’ roasters, as they provide provide
+great value while having a high frequency of desirable keywords. While
+purchasing from these roasters does involve a mild rating sacrifice,
+their value makes them an attractive option.
 
 ``` r
 roaster_counts <- coffee_clean |> 
@@ -322,8 +325,9 @@ hbo_credits <- read_rds("22921893Question2/data/US_Baby_names/HBO_credits.rds")
 
 ## Baby name persistence
 
-First, I get the national names counts, or, the sum of each name across
-all the states for each year and gender
+In order to track hisorical baby naming trends and persistence, I first
+get the national names counts, or, the sum of each name across all the
+states for each year and gender
 
 ``` r
 national_counts <- national_name_counts(baby_names)
@@ -419,6 +423,7 @@ Then, I calculate the naming spikes as year-on-year percentage changes.
 spikes <- name_spikes(national_counts)
 
 top_spikes <- top_spikes_table(spikes)
+
 top_spikes
 ```
 
@@ -505,7 +510,7 @@ To clean the data, I select only the relevant columns. Furthermore, I
 create a binary outcome variable for whether the loan status is fully
 paid off or not. The summary statistics of the cleaned data indicate
 outliers are present in the data. For instance, annual income has a
-maximum of 9 500 000. Similarly, debt-to-income also has a hanful of
+maximum of 9 500 000. Similarly, debt-to-income also has a handful of
 extreme outliers, with a handful of pre-cleaning observations with a dti
 equal to 999. The cleaning drops the most extreme dti observations.
 
@@ -530,7 +535,7 @@ Summary statistics
 
 ## Default rates on short-term loans
 
-First, I filter to short-term loans, and then create a function which
+I filter to short-term loans, and then create a function which
 calculates the default rate for any group. Among short term loans (36
 months), the default rate falls as home ownership improves. Renters
 default at 23.1%, compared to 19.9% for owners and 15.2% for those still
@@ -667,6 +672,10 @@ Default rate in the United States
 ``` r
 save_plot(map_plot, "Default rate in the United States.png")
 ```
+
+Therefore, there are geographical differences in the propensity to
+default in the United States. The drivers of this difference are outside
+of the scope of the current investigation.
 
 ## What does grade predict?
 
@@ -955,3 +964,9 @@ rsa_lollipop
 <p class="caption">
 Top Description Words South Africa.
 </p>
+
+The results of the text analysis is valuable to a company like Netflix,
+as it provides a measure of what movies have succeeded and are in demand
+for regions. Furthermore, it provides a basis for better advertising and
+marketing, as including words which are top descriptors in the marketing
+for movies may yield better results.
